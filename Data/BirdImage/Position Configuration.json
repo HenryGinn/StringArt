@@ -1,0 +1,13 @@
+{
+  "Image Position": {
+    "x": 384.0,
+    "y": 384.0
+  },
+  "Pin Circle": {
+    "Radius": 158.4,
+    "Count": 11
+  },
+  "Process Region": {
+    "Radius": 128.0
+  }
+}
