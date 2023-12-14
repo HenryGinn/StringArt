@@ -14,6 +14,7 @@ class SetupPosition():
         self.art = display.art
         self.figure = Image.open(self.art.source_path)
         self.set_path()
+        self.set_modify_inputs()
 
     def set_path(self):
         self.path = os.path.join(self.art.folder_path,
@@ -34,8 +35,8 @@ class SetupPosition():
     def path_exists_but_fail(self):
         print(("A position configuration file exists but data could not"
                "be extracted. Recreating new position configuration file"
-               f"File path: {self.path}"))
-        self.do_setup_position()
+               f"\n\nFile path:\n{self.path}"))
+        self.do_setup_position_from_new()
 
     def display_image_from_path(self):
         self.load_configuration_from_file()
@@ -52,10 +53,10 @@ class SetupPosition():
         self.extract_process_region_configuration()
 
     def extract_image_configuration(self):
-        self.x_position = self.config["Image Position"]["x"]
-        self.y_position = self.config["Image Position"]["y"]
-        self.image_width = self.config["Image Size"]["Width"]
-        self.image_height = self.config["Image Size"]["Height"]
+        self.x_position = self.config["Image Properties"]["x"]
+        self.y_position = self.config["Image Properties"]["y"]
+        self.image_width = self.config["Image Properties"]["Width"]
+        self.image_height = self.config["Image Properties"]["Height"]
 
     def extract_pin_configuration(self):
         self.pin_radius = self.config["Pin Circle"]["Radius"]
@@ -96,6 +97,7 @@ class SetupPosition():
         self.process_radius = 0.5 * min(self.image_width, self.image_height)
 
     def modify_configuration(self):
+        self.modify()
         self.display_image()
         self.update_user_not_satisfied()
 
@@ -122,6 +124,68 @@ class SetupPosition():
         response = get_int_input(prompt, lower_bound=1, upper_bound=2)
         self.user_not_satisfied = [False, True][response - 1]
 
+    def set_modify_inputs(self):
+        self.set_modify_functions()
+        self.set_modify_prompt()
+
+    def set_modify_functions(self):
+        self.modify_functions = [self.modify_position_x,
+                                 self.modify_position_y,
+                                 self.modify_image_width,
+                                 self.modify_image_height,
+                                 self.modify_pin_radius,
+                                 self.modify_pin_count,
+                                 self.modify_process_radius]
+
+    def set_modify_prompt(self):
+        self.prompt = ("\nWhat property do you want to modify?\n"
+                       "1: X position\n"
+                       "2: Y position\n"
+                       "3: Image width\n"
+                       "4: Image height\n"
+                       "5: Pin circle radius\n"
+                       "6: Number of pins\n"
+                       "7: Processing region radius\n")
+
+    def modify(self):
+        modify_function_index = get_int_input(self.prompt,
+                                              lower_bound=1,
+                                              upper_bound=6) - 1
+        modify_function = self.modify_functions[modify_function_index]()
+
+    def modify_position_x(self):
+        self.modify_variable("x position", "x_position")
+
+    def modify_position_y(self):
+        self.modify_variable("y position", "x_position")
+
+    def modify_image_width(self):
+        aspect_ratio = self.figure.height / self.figure.width
+        self.modify_variable("image width", "image_width")
+        self.image_height = int(self.image_width * aspect_ratio)
+
+    def modify_image_height(self):
+        aspect_ratio = self.figure.height / self.figure.width
+        self.modify_variable("image height", "image_height")
+        self.image_weight = int(self.image_height / aspect_ratio)
+
+    def modify_pin_radius(self):
+        self.modify_variable("pin circle radius", "pin_radius")
+
+    def modify_pin_count(self):
+        self.modify_variable("pin count", "pin_count")
+
+    def modify_process_radius(self):
+        self.modify_variable("process circle radius", "process_radius")
+
+    def modify_variable(self, variable_description, attribute_name):
+        old_value = getattr(self, attribute_name)
+        prompt = (f"\nThe current value of {variable_description} is "
+                  f"{round(old_value)}\n"
+                  "What would you like to change it to?\n")
+        new_value = get_int_input(prompt, lower_bound=1)
+        setattr(self, attribute_name, new_value)
+
     def save_new_configuration(self):
         self.set_config()
         with open(self.path, "w+") as file:
@@ -129,14 +193,16 @@ class SetupPosition():
 
     def set_config(self):
         self.config = {}
-        self.set_config_image_position()
+        self.set_config_image_properties()
         self.set_config_pin_circle()
         self.set_config_process_region()
 
     def set_config_image_position(self):
-        position_dict = {"x": self.x_position,
-                         "y": self.y_position}
-        self.config["Image Position"] = position_dict
+        properties_dict = {"x": self.x_position,
+                           "y": self.y_position,
+                           "Width": self.image_width,
+                           "Height": self.image_height}
+        self.config["Image Properties"] = properties_dict
 
     def set_config_pin_circle(self):
         pin_dict = {"Radius": self.pin_radius,
