@@ -2,6 +2,7 @@ import os
 import json
 import tkinter as tk
 
+import numpy as np
 from PIL import Image, ImageTk
 
 from int_input import get_int_input
@@ -9,8 +10,8 @@ from int_input import get_int_input
 
 class SetupPosition():
 
-    def __init__(self, display):
-        self.display = display
+    def __init__(self, display_obj):
+        self.display_obj = display_obj
         self.art = display.art
         self.figure = Image.open(self.art.source_path)
         self.set_path()
@@ -21,6 +22,7 @@ class SetupPosition():
                                  "Position Configuration.json")
 
     def setup_position(self):
+        self.user_not_satisfied = True
         if os.path.exists(self.path):
             self.path_already_exists()
         else:
@@ -40,7 +42,9 @@ class SetupPosition():
 
     def display_image_from_path(self):
         self.load_configuration_from_file()
-        self.display_image()
+        self.display_configuration()
+        self.update_user_not_satisfied()
+        self.do_setup_position()
 
     def load_configuration_from_file(self):
         with open(self.path, "r") as file:
@@ -50,7 +54,6 @@ class SetupPosition():
     def extract_from_configuration_dict(self):
         self.extract_image_configuration()
         self.extract_pin_configuration()
-        self.extract_process_region_configuration()
 
     def extract_image_configuration(self):
         self.x_position = self.config["Image Properties"]["x"]
@@ -62,19 +65,15 @@ class SetupPosition():
         self.pin_radius = self.config["Pin Circle"]["Radius"]
         self.pin_count = self.config["Pin Circle"]["Count"]
 
-    def extract_process_region_configuration(self):
-        self.x_process = self.config["Process Region"]["x"]
-        self.y_process = self.config["Process Region"]["y"]
-        self.process_radius = self.config["Process Region"]["Radius"]
-
     def do_setup_position_from_new(self):
         self.set_initial_values()
+        self.display_configuration()
         self.do_setup_position()
 
     def do_setup_position(self):
-        self.user_not_satisfied = True
         while self.user_not_satisfied:
             self.modify_configuration()
+            self.update_user_not_satisfied()
         self.save_new_configuration()
 
     def set_initial_values(self):
@@ -90,33 +89,66 @@ class SetupPosition():
         self.image_height = int(self.image_width * aspect_ratio)
 
     def set_initial_pin_config(self):
-        self.pin_radius = 0.6 * max(self.image_width, self.image_height)
+        self.pin_radius = 0.6 * max(self.image_width,
+                                    self.image_height)
         self.pin_count = 11
-
-    def set_initial_process_config(self):
-        self.process_radius = 0.5 * min(self.image_width, self.image_height)
 
     def modify_configuration(self):
         self.modify()
+        self.display_configuration()
+    
+
+    def display_configuration(self):
         self.display_image()
-        self.update_user_not_satisfied()
+        self.display_pins()
+        self.art.update()
 
     def display_image(self):
         PIL_figure = self.resize_figure()
         tkinter_figure = ImageTk.PhotoImage(PIL_figure)
-        label = tk.Label(image=tkinter_figure)
-        label.image = tkinter_figure
-        self.place_figure(label, PIL_figure)
+        self.image_label = tk.Label(image=tkinter_figure)
+        self.image_label.image = tkinter_figure
+        self.place_figure(PIL_figure)
 
     def resize_figure(self):
         resized_figure = self.figure.resize((self.image_width,
                                              self.image_height))
         return resized_figure
 
-    def place_figure(self, label, PIL_figure):
+    def place_figure(self, PIL_figure):
+        #self.delete_old_figure()
         x_position = self.x_position - PIL_figure.width / 2
         y_position = self.y_position - PIL_figure.height / 2
-        label.place(x=x_position, y=y_position)
+        self.image_label.place(x=x_position, y=y_position)
+
+    def delete_old_figure(self):
+        self.image_label.test
+
+    def display_pins(self):
+        self.set_pin_positions()
+        self.delete_pin_widgets()
+        self.draw_pins()
+
+    def set_pin_positions(self):
+        angles = np.linspace(0, 2*np.pi, num=self.pin_count, endpoint=False)
+        self.set_pin_positions_x(angles)
+        self.set_pin_positions_y(angles)
+
+    def set_pin_positions_x(self, angles):
+        self.pin_positions_x = (self.display_obj.window_centre_x +
+                                self.pin_radius * np.cos(angles))
+
+    def set_pin_positions_y(self, angles):
+        self.pin_positions_y = (self.display_obj.window_centre_y +
+                                self.pin_radius * np.sin(angles))
+
+    def delete_pin_widgets(self):
+        if hasattr(self, "pins"):
+            pass
+
+    def draw_pins(self):
+        pass
+    
 
     def update_user_not_satisfied(self):
         prompt = ("Is this configuration satisfactory?\n"
@@ -134,8 +166,7 @@ class SetupPosition():
                                  self.modify_image_width,
                                  self.modify_image_height,
                                  self.modify_pin_radius,
-                                 self.modify_pin_count,
-                                 self.modify_process_radius]
+                                 self.modify_pin_count]
 
     def set_modify_prompt(self):
         self.prompt = ("\nWhat property do you want to modify?\n"
@@ -144,8 +175,7 @@ class SetupPosition():
                        "3: Image width\n"
                        "4: Image height\n"
                        "5: Pin circle radius\n"
-                       "6: Number of pins\n"
-                       "7: Processing region radius\n")
+                       "6: Number of pins\n")
 
     def modify(self):
         modify_function_index = get_int_input(self.prompt,
@@ -175,9 +205,6 @@ class SetupPosition():
     def modify_pin_count(self):
         self.modify_variable("pin count", "pin_count")
 
-    def modify_process_radius(self):
-        self.modify_variable("process circle radius", "process_radius")
-
     def modify_variable(self, variable_description, attribute_name):
         old_value = getattr(self, attribute_name)
         prompt = (f"\nThe current value of {variable_description} is "
@@ -185,6 +212,7 @@ class SetupPosition():
                   "What would you like to change it to?\n")
         new_value = get_int_input(prompt, lower_bound=1)
         setattr(self, attribute_name, new_value)
+
 
     def save_new_configuration(self):
         self.set_config()
@@ -195,9 +223,8 @@ class SetupPosition():
         self.config = {}
         self.set_config_image_properties()
         self.set_config_pin_circle()
-        self.set_config_process_region()
 
-    def set_config_image_position(self):
+    def set_config_image_properties(self):
         properties_dict = {"x": self.x_position,
                            "y": self.y_position,
                            "Width": self.image_width,
@@ -208,7 +235,3 @@ class SetupPosition():
         pin_dict = {"Radius": self.pin_radius,
                     "Count": self. pin_count}
         self.config["Pin Circle"] = pin_dict
-
-    def set_config_process_region(self):
-        process_dict = {"Radius": self.process_radius}
-        self.config["Process Region"] = process_dict

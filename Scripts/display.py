@@ -21,6 +21,8 @@ class Display():
     def set_window_sizes(self):
         self.window_width = int(self.root.winfo_screenheight())
         self.window_height = int(self.root.winfo_screenheight())
+        self.window_centre_x = self.window_width // 2
+        self.window_centre_y = self.window_height // 2
 
     def setup_window(self):
         self.root.title(self.art.name)

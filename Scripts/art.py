@@ -22,6 +22,9 @@ class Art():
     def setup_position(self):
         self.display_obj.setup_position()
 
+    def update(self):
+        self.display_obj.root.update()
+
     def get_path_string(self):
         path_string = (f"Repository path: {self.repository_path}\n"
                        f"Folder path: {self.folder_path}\n"
