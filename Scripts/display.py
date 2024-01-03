@@ -2,8 +2,6 @@ import tkinter as tk
 
 from hgutilities import defaults
 
-from setup_position import SetupPosition
-
 
 class Display():
 
@@ -32,9 +30,5 @@ class Display():
         self.canvas = tk.Canvas(self.root, width=self.window_width, height=self.window_height)
         self.canvas.configure(bg=self.background_colour)
         self.canvas.pack()
-
-    def setup_position(self):
-        self.setup_position_obj = SetupPosition(self)
-        self.setup_position_obj.setup_position()
 
 defaults.load(Display)
