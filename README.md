@@ -12,8 +12,14 @@ This program should be able to do the following
 - Calculate and show a sequence for two colours with symmetric weaving
 - Calculate and show a sequence for two colours with general weaving
 
-## How to define the image region
+## Interface Overview
 
-I want this to be able to take in a rectangular image and allow the user to control the size and location of circle of pins relative to the image. They should also be able to define a circle of interest that has the same centre as the circle of pins, and this is the region that will be optimised over.
+The first stage of the program is to create an Art object. Each source image has its own folder which is the first positional argument, and it also needs to be given the name of the image itself - this is to ensure that the source image is processed and not one of the output images. An example is given below.
 
-To do this I will have a square window on the left taking up the full height of the screen and the shell will be on the right. It will give them options such as moving the image in each direction by some number of pixels, change the radius of the pin circle, and change the radius of the interest circle.
+```
+my_art = Art("BirdImage", "BirdImage.png")
+```
+
+// Add in an example of folder structure here
+
+The next stage is the image setup where the size and position of the image is defined relative to the circle of pins. This is run automatically if no configuration file can be read, but can be run manually if the `setup_position` method is called.

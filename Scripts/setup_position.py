@@ -128,13 +128,15 @@ class SetupPosition():
 
     def display_background_circle(self):
         self.remove_background_circle()
-        self.create_circle(self.display_obj.window_centre_x,
-                           self.display_obj.window_centre_y,
-                           self.pin_radius,
-                           self.background_colour)
+        self.background_circle = (
+            self.create_circle(self.display_obj.window_centre_x,
+                               self.display_obj.window_centre_y,
+                               self.pin_radius,
+                               self.background_colour))
 
     def remove_background_circle(self):
-        pass
+        if hasattr(self, "background_circle"):
+            self.display_obj.canvas.delete(self.background_circle)
 
     def display_image(self):
         PIL_figure = self.resize_figure()
@@ -156,7 +158,7 @@ class SetupPosition():
 
     def display_pins(self):
         self.set_pin_positions()
-        self.delete_pin_widgets()
+        self.delete_pins()
         self.draw_pins()
 
     def set_pin_positions(self):
@@ -172,9 +174,10 @@ class SetupPosition():
         self.pin_positions_y = (self.display_obj.window_centre_y +
                                 self.pin_radius * np.sin(angles))
 
-    def delete_pin_widgets(self):
+    def delete_pins(self):
         if hasattr(self, "pins"):
-            pass
+            for pin in self.pins:
+                self.display_obj.canvas.delete(pin)
 
     def draw_pins(self):
         pin_positions = zip(self.pin_positions_x, self.pin_positions_y)
