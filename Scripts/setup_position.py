@@ -169,10 +169,12 @@ class SetupPosition():
     def set_pin_positions_x(self, angles):
         self.pin_positions_x = (self.display_obj.window_centre_x +
                                 self.pin_radius * np.cos(angles))
+        self.art.pin_x = self.pin_positions_x
 
     def set_pin_positions_y(self, angles):
         self.pin_positions_y = (self.display_obj.window_centre_y +
                                 self.pin_radius * np.sin(angles))
+        self.art.pin_y = self.pin_positions_y
 
     def delete_pins(self):
         if hasattr(self, "pins"):

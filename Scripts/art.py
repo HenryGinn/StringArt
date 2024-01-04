@@ -6,6 +6,7 @@ from hgutilities import defaults
 
 from display import Display
 from setup_position import SetupPosition
+from pixel_array import PixelArray
 
 class Art():
 
@@ -32,7 +33,13 @@ class Art():
     def setup_position(self, force=True):
         self.setup_position_obj.setup_position(force)
 
+    def set_pixel_array(self):
+        self.ensure_position_setup()
+        self.pixel_array_obj = PixelArray(self)
+        self.pixel_array_obj.set_pixel_array()
+
     def update(self):
+        self.display_obj.root.deiconify()
         self.display_obj.root.update()
 
     def get_path_string(self):

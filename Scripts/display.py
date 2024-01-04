@@ -12,6 +12,7 @@ class Display():
     
     def create_window(self):
         self.root = tk.Tk()
+        self.root.withdraw()
         self.set_window_sizes()
         self.setup_window()
         self.setup_canvas()
