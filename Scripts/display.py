@@ -5,6 +5,8 @@ from hgutilities import defaults
 
 class Display():
 
+    # Window handling
+
     def __init__(self, art, **kwargs):
         self.art = art
         defaults.kwargs(self, kwargs)
@@ -25,11 +27,48 @@ class Display():
 
     def setup_window(self):
         self.root.title(self.art.name)
-        self.root.geometry(f"{self.window_width}x{self.window_height}+0+0")
+        self.root.geometry(
+            f"{self.window_width}x{self.window_height}+0+0")
 
     def setup_canvas(self):
-        self.canvas = tk.Canvas(self.root, width=self.window_width, height=self.window_height)
+        self.canvas = tk.Canvas(self.root, width=self.window_width,
+                                height=self.window_height)
         self.canvas.configure(bg=self.background_colour)
         self.canvas.pack()
 
+    def update(self):
+        self.root.deiconify()
+        self.root.update()
+
+
+    # Drawing
+
+    def draw_array(self):
+        circle = self.canvas.create_rectangle(
+            40, 40, 60, 60, fill="blue", width=0)
+        self.update()
+
 defaults.load(Display)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

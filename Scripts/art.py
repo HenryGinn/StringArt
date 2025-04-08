@@ -36,11 +36,13 @@ class Art():
     def set_pixel_array(self):
         self.ensure_position_setup()
         self.pixel_array_obj = PixelArray(self)
-        self.pixel_array_obj.set_pixel_array()
+        self.pixel_array_obj.set_array()
 
     def update(self):
-        self.display_obj.root.deiconify()
-        self.display_obj.root.update()
+        self.display_obj.update()
+
+    def draw_array(self):
+        self.display_obj.draw_array()
 
     def get_path_string(self):
         path_string = (f"Repository path: {self.repository_path}\n"

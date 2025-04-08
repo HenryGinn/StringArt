@@ -2,15 +2,15 @@
   "Image Properties": {
     "x": 400,
     "y": 405,
-    "Width": 384,
-    "Height": 397
+    "Width": 300,
+    "Height": 310
   },
   "Pin Circle": {
     "Radius": 250,
     "Count": 150,
-    "Colour": "#FF0000"
+    "Color": "#FF0000"
   },
-  "Colour": {
+  "Color": {
     "Background": "white",
     "Pins": "#FF0000"
   }
