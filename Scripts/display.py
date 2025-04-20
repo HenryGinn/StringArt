@@ -20,19 +20,20 @@ class Display():
         self.setup_canvas()
 
     def set_window_sizes(self):
-        self.window_width = int(self.root.winfo_screenheight())
+        self.window_width = int(self.root.winfo_screenwidth() // 2) - 33
         self.window_height = int(self.root.winfo_screenheight())
         self.window_centre_x = self.window_width // 2
         self.window_centre_y = self.window_height // 2
 
     def setup_window(self):
+        geometry = f"{self.window_width}x{self.window_height}+0+0"
         self.root.title(self.art.name)
-        self.root.geometry(
-            f"{self.window_width}x{self.window_height}+0+0")
+        self.root.geometry(geometry)
 
     def setup_canvas(self):
-        self.canvas = tk.Canvas(self.root, width=self.window_width,
-                                height=self.window_height)
+        self.canvas = tk.Canvas(
+            self.root, width=self.window_width,
+            height=self.window_height)
         self.canvas.configure(bg=self.background_colour)
         self.canvas.pack()
 
@@ -40,13 +41,6 @@ class Display():
         self.root.deiconify()
         self.root.update()
 
-
-    # Drawing
-
-    def draw_array(self):
-        circle = self.canvas.create_rectangle(
-            40, 40, 60, 60, fill="blue", width=0)
-        self.update()
 
 defaults.load(Display)
 

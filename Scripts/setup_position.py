@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 
 from int_input import get_int_input
 from color_input import get_color_input
+from utils import resize_figure
 
 
 class SetupPosition():
@@ -95,6 +96,7 @@ class SetupPosition():
         while self.user_not_satisfied:
             self.modify_config()
             self.update_user_not_satisfied()
+        self.display_obj.root.destroy()
 
     def set_initial_values(self):
         self.set_initial_image_config()
@@ -137,16 +139,11 @@ class SetupPosition():
             self.display_obj.canvas.delete(self.background_circle)
 
     def display_image(self):
-        PIL_figure = self.resize_figure()
+        PIL_figure = resize_figure(self.figure, self.image_width, self.image_height)
         tkinter_image = ImageTk.PhotoImage(PIL_figure)
          # Stop garbage collection
         self.display_obj.root.tkinter_image = tkinter_image
         self.place_image(tkinter_image)
-        
-    def resize_figure(self):
-        resized_figure = self.figure.resize(
-            (self.image_width, self.image_height))
-        return resized_figure
 
     def place_image(self, tkinter_image):
         self.display_obj.canvas.create_image(
