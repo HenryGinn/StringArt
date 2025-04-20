@@ -1,17 +1,10 @@
 {
+  "Array Size": 1000,
+  "Background Color": "white",
+  "Pin Count": 100,
   "Image Properties": {
-    "x": 530,
-    "y": 600,
-    "Width": 550,
-    "Height": 568
-  },
-  "Pin Circle": {
-    "Radius": 357.7,
-    "Count": 100,
-    "Color": "#FF0000"
-  },
-  "Color": {
-    "Background": "white",
-    "Pins": "#FF0000"
+    "x": 180,
+    "y": 190,
+    "Size": 700
   }
 }
