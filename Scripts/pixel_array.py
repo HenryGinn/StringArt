@@ -96,6 +96,8 @@ class PixelArray():
     def convert_array_to_image(self):
         array = np.where(np.isnan(self.array), 0, self.array)
         self.image = Image.fromarray(np.uint8(array))
+
+    
         
 
 

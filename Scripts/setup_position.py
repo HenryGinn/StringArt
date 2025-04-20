@@ -78,6 +78,7 @@ class SetupPosition():
     def extract_pin_config(self):
         self.pin_radius = self.config["Pin Circle"]["Radius"]
         self.pin_count = self.config["Pin Circle"]["Count"]
+        self.set_pin_positions()
 
     def extract_color_config(self):
         self.background_color = self.config["Color"]["Background"]
@@ -114,6 +115,7 @@ class SetupPosition():
         self.pin_radius = 0.7 * max(self.image_width,
                                     self.image_height)
         self.pin_count = 11
+        self.set_pin_positions()
 
     def set_initial_color_config(self):
         self.background_color = "white"
@@ -151,24 +153,26 @@ class SetupPosition():
             anchor="center", image=tkinter_image)
 
     def display_pins(self):
-        self.set_pin_positions()
         self.delete_pins()
         self.draw_pins()
 
     def set_pin_positions(self):
         angles = np.linspace(0, 2*np.pi, num=self.pin_count, endpoint=False)
-        self.set_pin_positions_x(angles)
-        self.set_pin_positions_y(angles)
+        pin_x = self.get_pin_positions_x(angles)
+        pin_y = self.get_pin_positions_y(angles)
+        self.pin_positions = [pin_x, pin_y]
 
-    def set_pin_positions_x(self, angles):
-        self.pin_positions_x = (self.display_obj.window_centre_x +
-                                self.pin_radius * np.cos(angles))
-        self.art.pin_x = self.pin_positions_x
+    def get_pin_positions_x(self, angles):
+        pin_positions_x = (
+            self.display_obj.window_centre_x +
+            self.pin_radius * np.cos(angles))
+        return pin_positions_x
 
-    def set_pin_positions_y(self, angles):
-        self.pin_positions_y = (self.display_obj.window_centre_y +
-                                self.pin_radius * np.sin(angles))
-        self.art.pin_y = self.pin_positions_y
+    def get_pin_positions_y(self, angles):
+        pin_positions_y = (
+            self.display_obj.window_centre_y +
+            self.pin_radius * np.sin(angles))
+        return pin_positions_y
 
     def delete_pins(self):
         if hasattr(self, "pins"):
@@ -177,9 +181,8 @@ class SetupPosition():
 
     def draw_pins(self):
         r = 2
-        pin_positions = zip(self.pin_positions_x, self.pin_positions_y)
         self.pins = [self.create_circle(x, y, r, self.pin_color)
-                     for x, y in pin_positions]
+                     for x, y in self.pin_positions]
 
     def create_circle(self, x, y, r, color):
         circle = self.display_obj.canvas.create_oval(
@@ -248,9 +251,11 @@ class SetupPosition():
 
     def modify_pin_radius(self):
         self.modify_int_variable("pin circle radius", "pin_radius")
+        self.set_pin_positions()
 
     def modify_pin_count(self):
         self.modify_int_variable("pin count", "pin_count")
+        self.set_pin_positions()
 
     def modify_background_color(self):
         self.modify_color_variable("background color",
