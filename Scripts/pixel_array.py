@@ -1,11 +1,6 @@
 import os
 
 import numpy as np
-from hgutilities import defaults
-from PIL import Image
-
-from utils import (
-    resize_figure)
 
 
 class PixelArray():

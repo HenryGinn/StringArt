@@ -37,11 +37,11 @@ class Config():
 
     # Main logic
 
-    def setup_position(self, force):
+    def configure(self, force):
         self.process_force_arg(force)
         self.set_config_file()
-        self.do_setup_position()
-        self.art.position_setup = True
+        self.do_configure()
+        self.art.configured = True
 
     def process_force_arg(self, force):
         self.user_not_satisfied = True
@@ -71,7 +71,7 @@ class Config():
                f"{traceback.format_exc()}"))
         self.set_initial_values()
 
-    def do_setup_position(self):
+    def do_configure(self):
         self.set_source_array()
         if self.user_not_satisfied:
             self.ensure_user_satisfied()
@@ -102,7 +102,7 @@ class Config():
         self.extract_config_other()
         self.extract_image_config()
         self.set_array_shape()
-        self.set_pin_positions()
+        self.set_pins()
 
     def extract_config_other(self):
         self.array_size = self.config["Array Size"]
@@ -134,16 +134,16 @@ class Config():
 
     def set_initial_pin_config(self):
         self.pin_count = 100
-        self.set_pin_positions()
+        self.set_pins()
 
     def set_initial_color_config(self):
         self.background_color = "white"
 
-    def set_pin_positions(self):
+    def set_pins(self):
         angles = np.linspace(0, 2*np.pi, num=self.pin_count, endpoint=False)
-        pin_x = self.array_size / 2 * np.cos(angles)
-        pin_y = self.array_size / 2 * np.sin(angles)
-        self.pin_positions = [pin_x, pin_y]
+        pin_x = (self.array_size - 1) * 0.4999 * (1 + np.cos(angles))
+        pin_y = (self.array_size - 1) * 0.4999 * (1 + np.sin(angles))
+        self.art.pins = np.array([pin_x, pin_y]).T
 
 
     # Array manipulation
@@ -158,10 +158,12 @@ class Config():
     def get_figure_array(self):
         figure = np.array(self.figure.resize((self.image_size, self.image_size)))
         figure_array = np.zeros((self.array_size, self.array_size, 4))
+        start_y = min(self.y_position, self.array_size)
+        end_y = min(self.y_position + self.image_size, self.array_size)
+        start_x = min(self.x_position, self.array_size)
+        end_x = min(self.x_position + self.image_size, self.array_size)
         figure_array[
-            self.y_position:self.y_position + self.image_size,
-            self.x_position:self.x_position + self.image_size,
-            :] = figure
+            start_y:end_y, start_x:end_x] = figure[:end_y - start_y, :end_x - start_x]
         return figure_array
 
     def get_non_transparant(self, figure_array):
@@ -261,7 +263,7 @@ class Config():
 
     def modify_pin_count(self):
         self.modify_int_variable("pin count", "pin_count")
-        self.set_pin_positions()
+        self.set_pins()
 
     def modify_background_color(self):
         self.modify_color_variable("background color",
