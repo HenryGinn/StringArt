@@ -32,8 +32,6 @@ class Art():
     def configure(self, force=True):
         self.config.configure(force)
         self.source_array = self.config.source_array
-        self.set_meshgrid()
-        self.set_lines()
 
     def set_meshgrid(self):
         coords = np.arange(self.config.array_size)
@@ -48,17 +46,6 @@ class Art():
         self.x_coords = self.x_coords - 0.25
         self.y_coords = self.y_coords - 0.25
 
-    def set_pixel_array(self):
-        self.ensure_configured()
-        self.pixel_array_obj = PixelArray(self)
-        self.pixel_array_obj.set_array()
-
-    def get_path_string(self):
-        path_string = (f"Repository path: {self.repository_path}\n"
-                       f"Folder path: {self.folder_path}\n"
-                       f"Source image path: {self.source_path}\n")
-        return path_string
-
     def save_array(self, array, name):
         image = get_image_from_array(array)
         new_size = int(np.ceil(1000 / image.size[0]) * image.size[0])
@@ -67,18 +54,64 @@ class Art():
         image.save(path)
 
 
-    # Computing lines
+    # Loading/computing lines
 
-    def set_lines(self):
+    def initialise_lines(self):
         self.lines = [
             Line(self, pin_1_index, pin_2_index)
-            for pin_1_index in range(self.config.pin_count)[:1]
-            for pin_2_index in range(self.config.pin_count)[3:4]]
+            for pin_1_index in range(self.config.pin_count)
+            for pin_2_index in range(self.config.pin_count)
+            if pin_1_index != pin_2_index]
 
-    def compute_lines(self):
-        for line in self.lines[:1]:
+    def set_lines(self):
+        self.ensure_lines_initialised()
+        if self.lines_files_exists():
+            self.set_lines_from_file()
+        else:
+            self.set_lines_from_new()
+
+    def ensure_lines_initialised(self):
+        if not hasattr(self, "lines"):
+            self.initialise_lines()
+
+    def lines_files_exists(self):
+        self.set_lines_paths()
+        return os.path.exists(self.lines_path)
+
+    def set_lines_paths(self):
+        lines_file_name = (
+            f"Name_{self.name}__"
+            f"Size_{self.config.array_size}__"
+            f"PinCount_{self.config.pin_count}.npy")
+        self.lines_path = os.path.join(self.folder_path, lines_file_name)
+
+    def set_lines_from_file(self):
+        print("Loading line data")
+        line_arrays = np.load(self.lines_path, allow_pickle=False)
+        for line, array in zip(self.lines, line_arrays):
+            line.array = array
+
+    def set_lines_from_new(self):
+        print("Generating line data")
+        self.set_meshgrid()
+        self.generate_line_arrays()
+        self.save_lines()
+
+    def generate_line_arrays(self):
+        for line in self.lines:
             line.set_array()
-            line.save()
+
+    def save_lines(self):
+        line_arrays = np.stack([line.array for line in self.lines])
+        np.save(self.lines_path, line_arrays, allow_pickle=False)
+
+
+    def get_path_string(self):
+        path_string = (
+            f"Repository path: {self.repository_path}\n"
+            f"Folder path: {self.folder_path}\n"
+            f"Source image path: {self.source_path}\n")
+        return path_string
 
     def __str__(self):
         string = f"{self.get_path_string()}"
