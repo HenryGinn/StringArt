@@ -27,6 +27,7 @@ class Line():
         self.array = self.intensity_profile(distance)
         self.array = 255 - ((1 - self.array[..., np.newaxis])
                             * (np.array([255, 255, 255]) - self.color))
+        self.array = self.art.serialise(self.array)
 
     def get_distance(self):
         dot_x = self.a*self.art.x_coords
@@ -42,4 +43,5 @@ class Line():
         return intensity
 
     def save(self):
-        self.art.save_array(self.array, f"Line_{self.pin_end_index}")
+        name = f"Line_{self.pin_start_index}_{self.pin_end_index}"
+        self.art.save_array(self.array, name)

@@ -32,7 +32,6 @@ class Art():
 
     def configure(self, force=True):
         self.config.configure(force)
-        self.source_array = self.config.source_array
 
     def set_meshgrid(self):
         coords = np.arange(self.config.array_size)
@@ -113,7 +112,14 @@ class Art():
         array[*self.circle_indexes, :] = serial
         return array
 
+    def ensure_unserialised(self, array):
+        if array.ndim > 2:
+            return self.unserialise(array)
+        else:
+            return array
+
     def save_array(self, array, name):
+        array = self.ensure_unserialised(array)
         image = get_image_from_array(array)
         new_size = int(np.ceil(1000 / image.size[0]) * image.size[0])
         image = image.resize((new_size, new_size), resample=Image.BOX)

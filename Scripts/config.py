@@ -149,11 +149,12 @@ class Config():
     # Array manipulation
 
     def set_source_array(self):
-        self.source_array = self.art.blank_array.copy()
+        self.art.source_array = self.art.blank_array.copy()
         figure_array = self.get_figure_array()
         non_transparent = self.get_non_transparant(figure_array)
-        self.source_array = np.where(
-            non_transparent, figure_array[:, :, :3], self.source_array)
+        self.art.source_array = np.where(
+            non_transparent, figure_array[:, :, :3], self.art.source_array)
+        self.art.source_array = self.art.serialise(self.art.source_array)
     
     def get_figure_array(self):
         figure = np.array(self.figure.resize((self.image_size, self.image_size)))
@@ -216,7 +217,7 @@ class Config():
 
     def save_source(self):
         self.set_source_array()
-        self.art.save_array(self.source_array, "Source")
+        self.art.save_array(self.art.source_array, "Source")
 
 
     # Modification of settings
