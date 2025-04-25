@@ -5,8 +5,8 @@ import numpy as np
 from PIL import Image
 
 from config import Config
-from pixel_array import PixelArray
 from line import Line
+from least_squares import LeastSquares
 from utils import get_image_from_array
 
 class Art():
@@ -24,6 +24,7 @@ class Art():
 
     def set_objects(self):
         self.config = Config(self)
+        self.least_squares = LeastSquares(self)
 
     def ensure_configured(self):
         if not self.configured:
@@ -71,6 +72,7 @@ class Art():
             self.set_lines_from_new()
 
     def ensure_lines_initialised(self):
+        self.ensure_configured()
         if not hasattr(self, "lines"):
             self.initialise_lines()
 
@@ -104,6 +106,15 @@ class Art():
     def save_lines(self):
         line_arrays = np.stack([line.array for line in self.lines])
         np.save(self.lines_path, line_arrays, allow_pickle=False)
+
+
+
+    def serialise(self, array):
+        serial = array[*np.where(self.circle_array[:, :, 0]), :]
+        return serial
+
+    def unserialise(self, serial):
+        return array
 
 
     def get_path_string(self):

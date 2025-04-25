@@ -1,5 +1,3 @@
-from math import floor, ceil
-
 import numpy as np
 
 
@@ -9,7 +7,6 @@ class Line():
         self.art = art
         self.set_pins(pin_start_index, pin_end_index)
         self.set_line_coefficients()
-        self.color = np.array([176, 11, 105])
 
     def set_pins(self, pin_start_index, pin_end_index):
         self.pin_start_index = pin_start_index
@@ -24,10 +21,12 @@ class Line():
         self.c = self.x1*self.y2 - self.y1*self.x2
 
     def set_array(self):
+        self.color = np.array([176, 11, 105])
         distance = self.get_distance()
         self.distance = distance
         self.array = self.intensity_profile(distance)
-        self.array = 255 - (1-self.array[..., np.newaxis])*(np.array([255, 255, 255]) - self.color)
+        self.array = 255 - ((1 - self.array[..., np.newaxis])
+                            * (np.array([255, 255, 255]) - self.color))
 
     def get_distance(self):
         dot_x = self.a*self.art.x_coords
@@ -44,9 +43,3 @@ class Line():
 
     def save(self):
         self.art.save_array(self.array, f"Line_{self.pin_end_index}")
-
-def fpart(x):
-    return x - ipart(x)
-
-def ipart(x):
-    return floor(x)

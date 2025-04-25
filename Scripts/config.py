@@ -172,29 +172,28 @@ class Config():
         return non_transparent
 
     def get_blank_array(self):
-        circle_array = self.get_circle_array()
+        self.set_circle_array()
         background_color_array = self.get_color_array(self.background_color)
         surroundings_array = self.get_color_array("#021b34")
         array = np.where(
-            circle_array, background_color_array, surroundings_array)
+            self.art.circle_array, background_color_array, surroundings_array)
         return array
 
-    def get_circle_array(self):
-        circle_array = self.get_circle_array_two_dimensions()
-        circle_array = np.stack((circle_array, circle_array, circle_array))
-        circle_array = np.moveaxis(circle_array, 0, 2)
-        return circle_array
+    def set_circle_array(self):
+        self.art.circle_array = self.get_circle_array_two_dimensions()
+        self.art.circle_array = np.expand_dims(self.art.circle_array, -1)
+        self.art.circle_array = np.tile(self.art.circle_array, (1, 1, 3))
 
     def get_circle_array_two_dimensions(self):
         radius = (self.array_size - 1) // 2
         constructer = self.get_circle_constructer_array(radius)
         x, y = np.meshgrid(constructer, constructer)
         pixel_distance = np.sqrt(x**2 + y**2)
-        circle = np.where(pixel_distance <= radius+0.1, 1, 0)
+        circle = np.where(pixel_distance <= radius + 0.1, 1, 0)
         return circle
 
     def get_circle_constructer_array(self, radius):
-        left = np.linspace(radius, 0, radius+1)
+        left = np.linspace(radius, 0, radius + 1)
         right = self.get_circle_constructure_array_right(radius)
         circle_constructer = np.concatenate((left, right))
         return circle_constructer
