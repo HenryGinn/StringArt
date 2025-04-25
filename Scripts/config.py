@@ -101,7 +101,7 @@ class Config():
     def extract_from_config_dict(self):
         self.extract_config_other()
         self.extract_image_config()
-        self.set_array_shape()
+        self.array_size_updated()
         self.set_pins()
 
     def extract_config_other(self):
@@ -125,7 +125,7 @@ class Config():
 
     def set_initial_array_size(self):
         self.array_size = 1000
-        self.set_array_shape()
+        self.array_size_updated()
 
     def set_initial_image_config(self):
         self.image_size = int(self.array_size * 0.7)
@@ -149,7 +149,7 @@ class Config():
     # Array manipulation
 
     def set_source_array(self):
-        self.source_array = self.get_blank_array()
+        self.source_array = self.art.blank_array.copy()
         figure_array = self.get_figure_array()
         non_transparent = self.get_non_transparant(figure_array)
         self.source_array = np.where(
@@ -171,18 +171,19 @@ class Config():
         non_transparant = np.tile(non_transparent, (1, 1, 3))
         return non_transparent
 
-    def get_blank_array(self):
-        self.set_circle_array()
-        background_color_array = self.get_color_array(self.background_color)
+    def set_blank_array(self):
+        circle_array = self.get_circle_array()
+        background_array = self.get_color_array(self.background_color)
         surroundings_array = self.get_color_array("#021b34")
-        array = np.where(
-            self.art.circle_array, background_color_array, surroundings_array)
-        return array
+        self.art.blank_array = np.where(
+            circle_array, background_array, surroundings_array)
 
-    def set_circle_array(self):
-        self.art.circle_array = self.get_circle_array_two_dimensions()
-        self.art.circle_array = np.expand_dims(self.art.circle_array, -1)
-        self.art.circle_array = np.tile(self.art.circle_array, (1, 1, 3))
+    def get_circle_array(self):
+        circle_array = self.get_circle_array_two_dimensions()
+        circle_array = np.expand_dims(circle_array, -1)
+        circle_array = np.tile(circle_array, (1, 1, 3))
+        self.art.circle_indexes = np.where(circle_array[:, :, 0])
+        return circle_array
 
     def get_circle_array_two_dimensions(self):
         radius = (self.array_size - 1) // 2
@@ -209,8 +210,9 @@ class Config():
         color_array = np.ones(self.array_shape)*color_array
         return color_array
 
-    def set_array_shape(self):
+    def array_size_updated(self):
         self.array_shape = (self.array_size, self.array_size, 3)
+        self.set_blank_array()
 
     def save_source(self):
         self.set_source_array()
@@ -270,7 +272,7 @@ class Config():
 
     def modify_array_size(self):
         self.modify_int_variable("array size", "array_size")
-        self.set_array_shape()
+        self.array_size_updated()
 
     def modify_nothing(self):
         pass

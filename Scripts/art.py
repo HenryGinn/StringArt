@@ -47,13 +47,6 @@ class Art():
         self.x_coords = self.x_coords - 0.25
         self.y_coords = self.y_coords - 0.25
 
-    def save_array(self, array, name):
-        image = get_image_from_array(array)
-        new_size = int(np.ceil(1000 / image.size[0]) * image.size[0])
-        image = image.resize((new_size, new_size), resample=Image.BOX)
-        path = os.path.join(self.folder_path, f"{name}.png")
-        image.save(path)
-
 
     # Loading/computing lines
 
@@ -109,13 +102,23 @@ class Art():
 
 
 
+    # Utils
+
     def serialise(self, array):
-        serial = array[*np.where(self.circle_array[:, :, 0]), :]
+        serial = array[*self.circle_indexes, :]
         return serial
 
     def unserialise(self, serial):
+        array = self.blank_array.copy()
+        array[*self.circle_indexes, :] = serial
         return array
 
+    def save_array(self, array, name):
+        image = get_image_from_array(array)
+        new_size = int(np.ceil(1000 / image.size[0]) * image.size[0])
+        image = image.resize((new_size, new_size), resample=Image.BOX)
+        path = os.path.join(self.folder_path, f"{name}.png")
+        image.save(path)
 
     def get_path_string(self):
         path_string = (
