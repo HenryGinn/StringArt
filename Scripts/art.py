@@ -54,7 +54,7 @@ class Art():
             Line(self, pin_1_index, pin_2_index)
             for pin_1_index in range(self.config.pin_count)
             for pin_2_index in range(self.config.pin_count)
-            if pin_1_index != pin_2_index]
+            if pin_1_index < pin_2_index]
 
     def set_lines(self):
         self.ensure_lines_initialised()
@@ -114,12 +114,14 @@ class Art():
 
     def ensure_unserialised(self, array):
         if array.ndim > 2:
-            return self.unserialise(array)
-        else:
             return array
+        else:
+            return self.unserialise(array)
 
     def save_array(self, array, name):
+        print(array.shape)
         array = self.ensure_unserialised(array)
+        print(array.shape)
         image = get_image_from_array(array)
         new_size = int(np.ceil(1000 / image.size[0]) * image.size[0])
         image = image.resize((new_size, new_size), resample=Image.BOX)
