@@ -7,6 +7,7 @@ from PIL import Image
 from config import Config
 from line import Line
 from least_squares import LeastSquares
+from greedy import Greedy
 from utils import get_image_from_array
 
 class Art():
@@ -25,6 +26,7 @@ class Art():
     def set_objects(self):
         self.config = Config(self)
         self.least_squares = LeastSquares(self)
+        self.greedy = Greedy(self)
 
     def ensure_configured(self):
         if not self.configured:
@@ -49,6 +51,12 @@ class Art():
 
     # Loading/computing lines
 
+    def setup_lines(self):
+        self.ensure_configured()
+        self.initialise_lines()
+        self.set_connecting_lines()
+        self.set_line_arrays()
+
     def initialise_lines(self):
         self.lines = [
             Line(self, pin_1_index, pin_2_index)
@@ -56,17 +64,24 @@ class Art():
             for pin_2_index in range(self.config.pin_count)
             if pin_1_index < pin_2_index]
 
-    def set_lines(self):
-        self.ensure_lines_initialised()
+    def set_connecting_lines(self):
+        self.connecting_lines = {
+            pin_index: [
+                line for line in self.lines
+                if (line.start_index == pin_index or
+                    line.end_index == pin_index)]
+            for pin_index in range(self.config.pin_count)}
+
+    def set_line_arrays(self):
         if self.lines_files_exists():
             self.set_lines_from_file()
         else:
             self.set_lines_from_new()
 
-    def ensure_lines_initialised(self):
+    def ensure_lines_setup(self):
         self.ensure_configured()
         if not hasattr(self, "lines"):
-            self.initialise_lines()
+            self.setup_lines()
 
     def lines_files_exists(self):
         self.set_lines_paths()
@@ -119,9 +134,7 @@ class Art():
             return self.unserialise(array)
 
     def save_array(self, array, name):
-        print(array.shape)
         array = self.ensure_unserialised(array)
-        print(array.shape)
         image = get_image_from_array(array)
         new_size = int(np.ceil(1000 / image.size[0]) * image.size[0])
         image = image.resize((new_size, new_size), resample=Image.BOX)

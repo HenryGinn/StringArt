@@ -3,19 +3,19 @@ import numpy as np
 
 class Line():
 
-    def __init__(self, art, pin_start_index, pin_end_index):
+    def __init__(self, art, start_index, end_index):
         self.art = art
-        self.set_pins(pin_start_index, pin_end_index)
+        self.set_pins(start_index, end_index)
         self.set_line_coefficients()
 
-    def set_pins(self, pin_start_index, pin_end_index):
-        self.pin_start_index = pin_start_index
-        self.pin_end_index = pin_end_index
-        self.pin_start = self.art.pins[pin_start_index]
-        self.pin_end = self.art.pins[pin_end_index]
+    def set_pins(self, start_index, end_index):
+        self.start_index = start_index
+        self.end_index = end_index
+        self.start = self.art.pins[start_index]
+        self.end = self.art.pins[end_index]
 
     def set_line_coefficients(self):
-        self.x1, self.y1, self.x2, self.y2 = *self.pin_start, *self.pin_end
+        self.x1, self.y1, self.x2, self.y2 = *self.start, *self.end
         self.a = self.y2 - self.y1
         self.b = self.x2 - self.x1
         self.c = self.x1*self.y2 - self.y1*self.x2
@@ -43,5 +43,5 @@ class Line():
         return intensity
 
     def save(self):
-        name = f"Line_{self.pin_start_index}_{self.pin_end_index}"
+        name = f"Line_{self.start_index}_{self.end_index}"
         self.art.save_array(self.array, name)

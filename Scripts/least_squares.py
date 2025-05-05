@@ -7,6 +7,7 @@ class LeastSquares():
         self.art = art
 
     def execute(self):
+        self.art.ensure_lines_setup()
         print("Solving via linear least squares")
         # Reshaping the line matrices from n x 3 to be vectors so they
         # can be stacked together into an 3n x m matrix.
@@ -15,4 +16,4 @@ class LeastSquares():
         self.target = self.art.source_array.reshape(-1)
         self.coefficients, self.residuals, _, _ = np.linalg.lstsq(self.matrix, self.target)
         self.array = np.matmul(self.matrix, self.coefficients).reshape(-1, 3)
-        self.art.save_array(self.array, "Output")
+        self.art.save_array(self.array, "LeastSquares")
