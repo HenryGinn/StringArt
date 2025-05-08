@@ -3,6 +3,7 @@ import sys
 
 import numpy as np
 from PIL import Image
+import matplotlib.pyplot as plt
 
 from config import Config
 from line import Line
@@ -10,11 +11,15 @@ from least_squares import LeastSquares
 from greedy import Greedy
 from utils import get_image_from_array
 
+
+grayscale_map = np.array([0.299, 0.587, 0.114])
+
+
 class Art():
 
     def __init__(self, folder_name, source_name):
         self.process_path_data(folder_name, source_name)
-        self.set_objects()
+        self.config = Config(self)
         self.configured = False
 
     def process_path_data(self, folder_name, source_name):
@@ -23,10 +28,27 @@ class Art():
         self.folder_path = os.path.join(self.repository_path, "Data", folder_name)
         self.source_path = os.path.join(self.folder_path, source_name)
 
-    def set_objects(self):
-        self.config = Config(self)
+    def set_physical_parameters(self, thread_width=0.002, diameter=0.6):
+        self.thread_width = thread_width
+        self.diameter = diameter
+        self.thread_diameter_ratio = thread_width / diameter
+        self.set_intensity_profile_parameters()
+
+    def set_intensity_profile_parameters(self):
+        inner_width = self.thread_diameter_ratio * 0.7
+        outer_width = inner_width * 2
+        self.intensity_gradient = 2 / (inner_width - outer_width)
+        self.intensity_intercept = -self.intensity_gradient * outer_width / 2
+
+    def initialise_least_squares(self):
+        self.ensure_lines_setup()
         self.least_squares = LeastSquares(self)
+        return self.least_squares
+
+    def initialise_greedy(self):
+        self.ensure_lines_setup()
         self.greedy = Greedy(self)
+        return self.greedy
 
     def ensure_configured(self):
         if not self.configured:
@@ -48,44 +70,44 @@ class Art():
         self.x_coords = self.x_coords - 0.25
         self.y_coords = self.y_coords - 0.25
 
+    def convert_to_grayscale(self):
+        self.array = grayscale_map * self.array
+
 
     # Loading/computing lines
 
-    def setup_lines(self):
+    def setup_lines(self, force=False):
         self.ensure_configured()
         self.initialise_lines()
-        self.set_connecting_lines()
-        self.set_line_arrays()
+        self.set_line_lookup()
+        self.set_lines_paths()
+        self.set_line_arrays(force)
 
     def initialise_lines(self):
         self.lines = [
             Line(self, pin_1_index, pin_2_index)
             for pin_1_index in range(self.config.pin_count)
             for pin_2_index in range(self.config.pin_count)
-            if pin_1_index < pin_2_index]
+            if pin_1_index < pin_2_index][39:40]
 
-    def set_connecting_lines(self):
-        self.connecting_lines = {
+    def set_line_lookup(self):
+        self.line_lookup = {
             pin_index: [
                 line for line in self.lines
                 if (line.start_index == pin_index or
                     line.end_index == pin_index)]
             for pin_index in range(self.config.pin_count)}
 
-    def set_line_arrays(self):
-        if self.lines_files_exists():
-            self.set_lines_from_file()
-        else:
+    def set_line_arrays(self, force=False):
+        if force or not os.path.exists(self.lines_path):
             self.set_lines_from_new()
+        else:
+            self.set_lines_from_file()
 
     def ensure_lines_setup(self):
         self.ensure_configured()
         if not hasattr(self, "lines"):
             self.setup_lines()
-
-    def lines_files_exists(self):
-        self.set_lines_paths()
-        return os.path.exists(self.lines_path)
 
     def set_lines_paths(self):
         lines_file_name = (
@@ -140,6 +162,10 @@ class Art():
         image = image.resize((new_size, new_size), resample=Image.BOX)
         path = os.path.join(self.folder_path, f"{name}.png")
         image.save(path)
+
+    def plot(self, data):
+        plt.plot(data)
+        plt.show()
 
     def get_path_string(self):
         path_string = (

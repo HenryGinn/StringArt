@@ -7,7 +7,6 @@ class LeastSquares():
         self.art = art
 
     def execute(self):
-        self.art.ensure_lines_setup()
         print("Solving via linear least squares")
         # Reshaping the line matrices from n x 3 to be vectors so they
         # can be stacked together into an 3n x m matrix.
