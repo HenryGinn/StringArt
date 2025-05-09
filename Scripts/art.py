@@ -88,7 +88,7 @@ class Art():
             Line(self, pin_1_index, pin_2_index)
             for pin_1_index in range(self.config.pin_count)
             for pin_2_index in range(self.config.pin_count)
-            if pin_1_index < pin_2_index][39:40]
+            if pin_1_index < pin_2_index][:40]
 
     def set_line_lookup(self):
         self.line_lookup = {

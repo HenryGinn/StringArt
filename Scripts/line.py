@@ -32,8 +32,8 @@ class Line():
         distance = self.get_distance()
         self.distance = distance
         self.array = self.intensity_profile(distance)
-        self.a = 255 - self.array[..., np.newaxis] * np.array([1, 1, 1]) * 255
-        self.art.save_array(self.a, f"Intensity_{self.name}")
+        self.A = 255 - self.array[..., np.newaxis] * np.array([1, 1, 1]) * 255
+        self.art.save_array(self.A, f"Intensity_{self.name}")
         self.array = 255 - ((1 - self.array[..., np.newaxis])
                             * (np.array([255, 255, 255]) - self.color))
         self.array = self.art.serialise(self.array)
@@ -43,7 +43,8 @@ class Line():
         dot_y = self.b*self.art.y_coords
         scale = np.sqrt(self.a**2 + self.b**2)
         distance = np.abs(dot_x - dot_y - self.c) / scale
-        distance /= np.max(distance)
+        distance /= self.art.config.array_size
+        distance = np.where(distance <= 1, distance, 1)
         return distance
 
     def intensity_profile(self, distance):
