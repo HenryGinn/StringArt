@@ -88,7 +88,7 @@ class Art():
             Line(self, pin_1_index, pin_2_index)
             for pin_1_index in range(self.config.pin_count)
             for pin_2_index in range(self.config.pin_count)
-            if pin_1_index < pin_2_index][:40]
+            if pin_1_index < pin_2_index]#[29:30]
 
     def set_line_lookup(self):
         self.line_lookup = {
@@ -153,7 +153,7 @@ class Art():
         if array.ndim > 2:
             return array
         else:
-            return self.unserialise(array)
+            return self.unserialise([255, 255, 255] - array)
 
     def save_array(self, array, name):
         array = self.ensure_unserialised(array)

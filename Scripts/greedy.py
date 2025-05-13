@@ -11,10 +11,10 @@ class Greedy():
 
     def execute(self):
         print("Solving via greedy algorithm")
-        for i in range(500):
-            self.iteration()
+        for i in range(1001):
             if i % 20 == 0:
                 self.art.save_array(self.array, f"Iteration_{i:03}")
+            self.iteration()
 
     def iteration(self):
         lines = self.art.line_lookup[self.start]
