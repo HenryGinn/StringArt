@@ -9,7 +9,10 @@ from config import Config
 from line import Line
 from least_squares import LeastSquares
 from greedy import Greedy
-from utils import get_image_from_array
+from utils import (
+    get_image_from_array,
+    pack,
+    unpack)
 
 
 grayscale_map = np.array([0.299, 0.587, 0.114])
@@ -80,7 +83,7 @@ class Art():
         self.ensure_configured()
         self.initialise_lines()
         self.set_line_lookup()
-        self.set_lines_paths()
+        self.set_line_paths()
         self.set_line_arrays(force)
 
     def initialise_lines(self):
@@ -88,7 +91,7 @@ class Art():
             Line(self, pin_1_index, pin_2_index)
             for pin_1_index in range(self.config.pin_count)
             for pin_2_index in range(self.config.pin_count)
-            if pin_1_index < pin_2_index]#[29:30]
+            if pin_1_index < pin_2_index][29:30]
 
     def set_line_lookup(self):
         self.line_lookup = {
@@ -99,28 +102,47 @@ class Art():
             for pin_index in range(self.config.pin_count)}
 
     def set_line_arrays(self, force=False):
-        if force or not os.path.exists(self.lines_path):
+        if force or not self.line_paths_exist():
             self.set_lines_from_new()
         else:
             self.set_lines_from_file()
 
+    def line_paths_exist(self):
+        return (
+            os.path.exists(self.line_data_path) and
+            os.path.exists(self.line_sizes_path))
+    
     def ensure_lines_setup(self):
         self.ensure_configured()
         if not hasattr(self, "lines"):
             self.setup_lines()
 
-    def set_lines_paths(self):
-        lines_file_name = (
+    def set_line_paths(self):
+        self.set_line_data_path()
+        self.set_line_sizes_path()
+
+    def set_line_data_path(self):
+        file_name = (
+            "LineData__"
             f"Name_{self.name}__"
             f"Size_{self.config.array_size}__"
             f"PinCount_{self.config.pin_count}.npy")
-        self.lines_path = os.path.join(self.folder_path, lines_file_name)
+        self.line_data_path = os.path.join(self.folder_path, file_name)
+
+    def set_line_sizes_path(self):
+        file_name = (
+            "LineSizes__"
+            f"Name_{self.name}__"
+            f"Size_{self.config.array_size}__"
+            f"PinCount_{self.config.pin_count}.npy")
+        self.line_sizes_path = os.path.join(self.folder_path, file_name)
 
     def set_lines_from_file(self):
         print("Loading line data")
-        line_arrays = np.load(self.lines_path, allow_pickle=False)
-        for line, array in zip(self.lines, line_arrays):
-            line.array = array
+        line_data = np.load(self.line_data_path, allow_pickle=False)
+        sizes = np.load(self.line_sizes_path, allow_pickle=False)
+        for line, (start, end) in zip(self.lines, sizes):
+            line.array = unpack(line_data[start:end])
 
     def set_lines_from_new(self):
         print("Generating line data")
@@ -133,10 +155,20 @@ class Art():
             line.set_array()
 
     def save_lines(self):
-        line_arrays = np.stack([line.array for line in self.lines])
-        np.save(self.lines_path, line_arrays, allow_pickle=False)
+        self.save_lines_data()
+        self.save_lines_sizes()
 
+    def save_lines_data(self):
+        arrays = [pack(*line.array) for line in self.lines]
+        line_arrays = np.concatenate(arrays, axis=1)
+        np.save(self.line_data_path, line_arrays, allow_pickle=False)
 
+    def save_lines_sizes(self):
+        sizes = [0] + [line.array[1].size for line in self.lines]
+        sizes = np.cumsum(sizes)
+        sizes = np.stack((sizes[:-1], sizes[1:]), axis=1)
+        np.save(self.line_sizes_path, sizes, allow_pickle=False)
+        
 
     # Utils
 
@@ -155,6 +187,11 @@ class Art():
         else:
             return self.unserialise([255, 255, 255] - array)
 
+    def get_unsparse(indexes, values, null=0):
+        array = np.ones(self.serial_size, 3) * null
+        array[indexes, :] = values
+        return array
+        
     def save_array(self, array, name):
         array = self.ensure_unserialised(array)
         image = get_image_from_array(array)

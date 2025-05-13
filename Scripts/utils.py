@@ -18,3 +18,39 @@ def print_help(obj):
             print(i, getattr(obj, i))
             help(getattr(obj, i))
             print("")
+
+def get_values_indexes(array, null=0):
+    non_trivial = np.any(array != null, axis=1)
+    indexes = np.nonzero(non_trivial)[0]
+    values = array[indexes, :]
+    return values, indexes
+
+def pack(values, indexes):
+    arrays = (indexes.reshape(-1, 1), values)
+    sparse = np.concatenate(arrays, axis=1)
+    return sparse
+
+def unpack(sparse):
+    indexes = sparse[:, 0]
+    values = sparse[:, [1, 2, 3]]
+    return indexes, values
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -184,6 +184,7 @@ class Config():
         circle_array = np.expand_dims(circle_array, -1)
         circle_array = np.tile(circle_array, (1, 1, 3))
         self.art.circle_indexes = np.where(circle_array[:, :, 0])
+        self.art.serial_length = self.art.circle_indexes[0].size
         return circle_array
 
     def get_circle_array_two_dimensions(self):

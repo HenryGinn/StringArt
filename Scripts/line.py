@@ -1,5 +1,8 @@
 import numpy as np
 
+from utils import (
+    get_values_indexes)
+
 
 class Line():
 
@@ -31,9 +34,9 @@ class Line():
     def set_array(self):
         distance = self.get_distance()
         self.array = self.intensity_profile(distance)
-        self.e = self.array.copy()
         self.array = (self.array[..., np.newaxis]) * self.color
         self.array = self.art.serialise(self.array)
+        self.array = get_values_indexes(self.array)
 
     def get_distance(self):
         dot_x = self.a*self.art.x_coords
@@ -52,6 +55,7 @@ class Line():
 
     def save(self):
         name = f"Line_{self.start_index}_{self.end_index}"
+        array = get_grid(*self.array)
         self.art.save_array(self.array, name)
 
     def __str__(self):
