@@ -23,9 +23,9 @@ class Config():
         self.set_modify_inputs()
 
     def set_path(self):
-        self.path = os.path.join(
+        self.config_path = os.path.join(
             self.art.folder_path,
-            "PositionConfig.json")
+            "Config.json")
 
     def initialise_figure(self):
         self.figure = Image.open(self.art.source_path)
@@ -101,18 +101,26 @@ class Config():
     def extract_from_config_dict(self):
         self.extract_config_other()
         self.extract_image_config()
-        self.array_size_updated()
+        self.update_array_size()
+        self.extract_physical_parameters()
         self.set_pins()
 
     def extract_config_other(self):
         self.array_size = self.config["Array Size"]
         self.background_color = self.config["Background Color"]
         self.pin_count = self.config["Pin Count"]
+        self.colors = self.config["Colors"]
 
     def extract_image_config(self):
         self.x_position = self.config["Image Properties"]["x"]
         self.y_position = self.config["Image Properties"]["y"]
-        self.image_size = self.config["Image Properties"]["Size"]
+        self.image_size = self.config["Image Properties"]["Size"]"]
+
+    def extract_physical_parameters(self):
+        self.art.physical_diameter = self.config["PhysicalDiameter"]
+        self.art.thread_width = self.config["ThreadWidth"]
+        self.art.update_thread_diameter_ratio()
+
 
 
     # Initialisation of configuration
@@ -125,7 +133,7 @@ class Config():
 
     def set_initial_array_size(self):
         self.array_size = 1000
-        self.array_size_updated()
+        self.update_array_size()
 
     def set_initial_image_config(self):
         self.image_size = int(self.array_size * 0.7)
@@ -212,7 +220,7 @@ class Config():
         color_array = np.ones(self.array_shape)*color_array
         return color_array
 
-    def array_size_updated(self):
+    def update_array_size(self):
         self.array_shape = (self.array_size, self.array_size, 3)
         self.set_blank_array()
 
@@ -274,7 +282,7 @@ class Config():
 
     def modify_array_size(self):
         self.modify_int_variable("array size", "array_size")
-        self.array_size_updated()
+        self.update_array_size()
 
     def modify_nothing(self):
         pass

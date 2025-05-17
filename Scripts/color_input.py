@@ -5,9 +5,11 @@ colors = set(list(mcolors.TABLEAU_COLORS.keys()) +
               list(mcolors.CSS4_COLORS.keys()) +
               list(mcolors.XKCD_COLORS.keys()))
 
-hex_characters = list(range(1, 11)) + ["A", "B", "C", "D", "E", "F"]
+hex_characters = [str(i) for i in range(10)] + ["A", "B", "C", "D", "E", "F"]
 
-def get_color_input(prompt):
+def get_color_input(prompt=None):
+    if prompt is None:
+        prompt = ""
     input_valid = False
     while not input_valid:
         input_valid, color_input = do_get_color_input(prompt)
@@ -36,6 +38,7 @@ def color_not_hex(color_input):
         return True
     if color_input[0] != "#":
         return True
+    print("Lol")
     return color_not_hex_characters(color_input)
 
 def color_not_hex_characters(color_input):
@@ -43,3 +46,9 @@ def color_not_hex_characters(color_input):
         if character not in hex_characters:
             return True
     return False
+
+def hex_to_rgb(hex_str):
+    hex_str = [hex_characters.index(str(char.upper())) for char in hex_str[1:]]
+    pairs = hex_str[0:2], hex_str[2:4], hex_str[4:6]
+    rgb = [16*a + b for (a, b) in pairs]
+    return rgb

@@ -6,13 +6,13 @@ from utils import (
 
 class Line():
 
-    def __init__(self, art, start_index, end_index):
+    def __init__(self, art, start_index, end_index, color):
         self.art = art
+        self.color = color
         self.set_pins(start_index, end_index)
         self.set_start_end_lookup()
         self.set_line_coefficients()
         self.name = f"{self.start_index:03}_{self.end_index:03}"
-        self.color = np.array([100, 100, 100])
 
     def set_pins(self, start_index, end_index):
         self.start_index = start_index
@@ -34,7 +34,7 @@ class Line():
     def set_array(self):
         distance = self.get_distance()
         self.array = self.intensity_profile(distance)
-        self.array = (self.array[..., np.newaxis]) * self.color
+        self.array = self.array[..., np.newaxis] * (255 - self.color)
         self.array = self.art.serialise(self.array)
         self.array = get_values_indexes(self.array)
 

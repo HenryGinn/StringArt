@@ -21,8 +21,8 @@ def print_help(obj):
 
 def get_values_indexes(array, null=0):
     non_trivial = np.any(array != null, axis=1)
-    indexes = np.nonzero(non_trivial)[0]
-    values = array[indexes, :]
+    indexes = np.nonzero(non_trivial)[0].astype("int32")
+    values = array[indexes, :].astype("uint8")
     return values, indexes
 
 def pack(values, indexes):
@@ -31,9 +31,9 @@ def pack(values, indexes):
     return sparse
 
 def unpack(sparse):
-    indexes = sparse[:, 0]
     values = sparse[:, [1, 2, 3]]
-    return indexes, values
+    indexes = sparse[:, 0].reshape(-1)
+    return values, indexes
 
 
 

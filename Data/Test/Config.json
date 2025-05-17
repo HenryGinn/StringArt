@@ -1,14 +1,14 @@
 {
-  "Array Size": 1005,
+  "Array Size": 15,
   "Background Color": "white",
-  "Pin Count": 80,
+  "Pin Count": 4,
   "Image Properties": {
-    "x": 180,
-    "y": 190,
-    "Size": 700
+    "x": 4,
+    "y": 4,
+    "Size": 8
   },
   "PhysicalDiameter": 0.6,
-  "ThreadWidth": 0.001,
+  "ThreadWidth": 0.05,
   "Colors": [
     [ 38,  95, 169],
     [ 40,  98, 174],

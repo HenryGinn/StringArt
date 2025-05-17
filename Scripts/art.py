@@ -31,10 +31,8 @@ class Art():
         self.folder_path = os.path.join(self.repository_path, "Data", folder_name)
         self.source_path = os.path.join(self.folder_path, source_name)
 
-    def set_physical_parameters(self, thread_width=0.002, diameter=0.6):
-        self.thread_width = thread_width
-        self.diameter = diameter
-        self.thread_diameter_ratio = thread_width / diameter
+    def update_thread_diameter_ratio(self):
+        self.thread_diameter_ratio = self.thread_width / self.physical_diameter
         self.set_intensity_profile_parameters()
 
     def set_intensity_profile_parameters(self):
@@ -57,7 +55,7 @@ class Art():
         if not self.configured:
             self.configure(force=False)
 
-    def configure(self, force=True):
+    def configure(self, force=False):
         self.config.configure(force)
 
     def set_meshgrid(self):
@@ -70,8 +68,10 @@ class Art():
         # grid. Given that in practice a high resolution grid will
         # always be used and the difference scales with the cell size,
         # this does not matter anyway.
-        self.x_coords = self.x_coords - 0.25
-        self.y_coords = self.y_coords - 0.25
+        # Using 0.25 caused different diagonals to behave differently so
+        # I have reverted back to 0.5.
+        self.x_coords = self.x_coords - 0.5
+        self.y_coords = self.y_coords - 0.5
 
     def convert_to_grayscale(self):
         self.array = grayscale_map * self.array
@@ -91,7 +91,7 @@ class Art():
             Line(self, pin_1_index, pin_2_index)
             for pin_1_index in range(self.config.pin_count)
             for pin_2_index in range(self.config.pin_count)
-            if pin_1_index < pin_2_index][29:30]
+            if pin_1_index < pin_2_index]
 
     def set_line_lookup(self):
         self.line_lookup = {
@@ -151,7 +151,10 @@ class Art():
         self.save_lines()
 
     def generate_line_arrays(self):
-        for line in self.lines:
+        print(f"Line count: {len(self.lines)}")
+        for index, line in enumerate(self.lines):
+            if index % 100 == 0:
+                print(index)
             line.set_array()
 
     def save_lines(self):
@@ -160,7 +163,7 @@ class Art():
 
     def save_lines_data(self):
         arrays = [pack(*line.array) for line in self.lines]
-        line_arrays = np.concatenate(arrays, axis=1)
+        line_arrays = np.concatenate(arrays, axis=0)
         np.save(self.line_data_path, line_arrays, allow_pickle=False)
 
     def save_lines_sizes(self):
@@ -182,13 +185,19 @@ class Art():
         return array
 
     def ensure_unserialised(self, array):
+        array = self.ensure_unsparce(array)
         if array.ndim > 2:
-            return array
+            return 255 - array
         else:
-            return self.unserialise([255, 255, 255] - array)
+            return self.unserialise(255 - array)
 
-    def get_unsparse(indexes, values, null=0):
-        array = np.ones(self.serial_size, 3) * null
+    def ensure_unsparce(self, array):
+        if isinstance(array, tuple):
+            array = self.get_unsparse(*array)
+        return array
+
+    def get_unsparse(self, values, indexes, null=0):
+        array = np.ones((self.serial_length, 3)) * null
         array[indexes, :] = values
         return array
         
