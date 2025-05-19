@@ -1,6 +1,6 @@
 {
   "Array Size": 15,
-  "Background Color": "white",
+  "Background Color": [200, 200, 200],
   "Pin Count": 4,
   "Image Properties": {
     "x": 4,

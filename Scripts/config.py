@@ -48,7 +48,7 @@ class Config():
         self.force = force
 
     def set_config_file(self):
-        if os.path.exists(self.path):
+        if os.path.exists(self.config_path):
             self.path_already_exists()
         else:
             self.set_initial_values()
@@ -67,7 +67,7 @@ class Config():
         print(("A position configuration file exists but data could not "
                "be extracted.\n"
                "A new position configuration file will be created\n\n"
-               f"File path:\n{self.path}\n\n"
+               f"File path:\n{self.config_path}\n\n"
                f"{traceback.format_exc()}"))
         self.set_initial_values()
 
@@ -94,7 +94,7 @@ class Config():
     # Loading configuration
 
     def load_config_from_file(self):
-        with open(self.path, "r") as file:
+        with open(self.config_path, "r") as file:
             self.config = json.load(file)
         self.extract_from_config_dict()
 
@@ -107,14 +107,14 @@ class Config():
 
     def extract_config_other(self):
         self.array_size = self.config["Array Size"]
-        self.background_color = self.config["Background Color"]
+        self.background_color = np.array(self.config["Background Color"], dtype="uint8")
         self.pin_count = self.config["Pin Count"]
-        self.colors = self.config["Colors"]
+        self.art.colors = [tuple(color) for color in self.config["Colors"]]
 
     def extract_image_config(self):
         self.x_position = self.config["Image Properties"]["x"]
         self.y_position = self.config["Image Properties"]["y"]
-        self.image_size = self.config["Image Properties"]["Size"]"]
+        self.image_size = self.config["Image Properties"]["Size"]
 
     def extract_physical_parameters(self):
         self.art.physical_diameter = self.config["PhysicalDiameter"]
@@ -130,6 +130,7 @@ class Config():
         self.set_initial_image_config()
         self.set_initial_pin_config()
         self.set_initial_color_config()
+        self.set_initial_physical_parameters_config()
 
     def set_initial_array_size(self):
         self.array_size = 1000
@@ -145,7 +146,13 @@ class Config():
         self.set_pins()
 
     def set_initial_color_config(self):
-        self.background_color = "white"
+        self.background_color = tuple([255, 255, 255])
+        self.art.colors = [tuple([0, 0, 0])]
+
+    def set_initial_physical_parameters_config(self):
+        self.art.physical_diameter = 0.6
+        self.art.thread_width = 0.002
+        self.art.update_thread_diameter_ratio()
 
     def set_pins(self):
         angles = np.linspace(0, 2*np.pi, num=self.pin_count, endpoint=False)
@@ -308,7 +315,7 @@ class Config():
 
     def save_new_config(self):
         self.set_config()
-        with open(self.path, "w+") as file:
+        with open(self.config_path, "w+") as file:
             json.dump(self.config, file, indent=2)
 
     def set_config(self):
@@ -318,7 +325,7 @@ class Config():
 
     def set_config_other(self):
         self.config["Array Size"] = self.array_size
-        self.config["Background Color"] = self.background_color
+        self.config["Background Color"] = np.array(self.background_color, dtype="uint8")
         self.config["Pin Count"] = self.pin_count
 
     def set_config_image_properties(self):

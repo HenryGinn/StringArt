@@ -88,18 +88,21 @@ class Art():
 
     def initialise_lines(self):
         self.lines = [
-            Line(self, pin_1_index, pin_2_index)
+            Line(self, pin_1_index, pin_2_index, color)
             for pin_1_index in range(self.config.pin_count)
             for pin_2_index in range(self.config.pin_count)
+            for color in self.colors
             if pin_1_index < pin_2_index]
 
     def set_line_lookup(self):
         self.line_lookup = {
-            pin_index: [
+            (pin_index, color): [
                 line for line in self.lines
                 if (line.start_index == pin_index or
-                    line.end_index == pin_index)]
-            for pin_index in range(self.config.pin_count)}
+                    line.end_index == pin_index) and
+                    line.color == color]
+            for pin_index in range(self.config.pin_count)
+            for color in self.colors}
 
     def set_line_arrays(self, force=False):
         if force or not self.line_paths_exist():
@@ -186,10 +189,9 @@ class Art():
 
     def ensure_unserialised(self, array):
         array = self.ensure_unsparce(array)
-        if array.ndim > 2:
-            return 255 - array
-        else:
-            return self.unserialise(255 - array)
+        if array.ndim <= 2:
+            array = self.unserialise(array)
+        return array
 
     def ensure_unsparce(self, array):
         if isinstance(array, tuple):
