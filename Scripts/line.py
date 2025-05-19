@@ -34,7 +34,8 @@ class Line():
     def set_array(self):
         distance = self.get_distance()
         self.array = self.intensity_profile(distance)
-        self.array = self.array[..., np.newaxis] * np.array(self.color)
+        self.array = self.array[..., np.newaxis]
+        self.array = 255*(1 - self.array) + self.array*np.array(self.color)
         self.array = self.art.serialise(self.array)
         self.array = get_values_indexes(self.array)
 

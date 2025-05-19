@@ -6,18 +6,25 @@ class Greedy():
     def __init__(self, art):
         self.art = art
         self.history = []
+        self.past_lines = set([])
         self.start = {color: 0 for color in art.colors}
-        self.array = np.zeros(self.art.source_array.shape)
+        self.array = (np.ones(self.art.source_array.shape)
+                      * self.art.config.background_color)
 
     def execute(self):
         improved = self.initialise_execution()
         while improved:
-            improved = self.iterate()
+            if self.counter % 10 == 0:
+                self.art.save_array(self.array, f"Iteration_{self.counter:04}")
+                input()
+            self.counter += 1
+            self.iterate()
         self.art.save_array(self.array, "Output")
 
     def initialise_execution(self):
         print("Solving via greedy algorithm")
         self.current_best = np.linalg.norm(self.array - self.art.source_array)
+        self.counter = 0
         return True
 
     def iterate(self):
@@ -30,19 +37,25 @@ class Greedy():
     def get_lines(self):
         lines = [
             line for color in self.art.colors
-            for line in self.art.line_lookup[(self.start[color], color)]]
+            for line in self.art.line_lookup[(self.start[color], color)]
+            if line not in self.past_lines]
         return lines
 
     def set_differences(self, lines):
         self.differences = {
-            line: np.linalg.norm(
-                self.get_array(*line.array))
+            line: self.get_norm(line)
             for line in lines}
 
-    def get_array(self, values, indexes):
-        array = self.array.copy()
-        array[indexes] = (array[indexes] + values)/2
+    def get_norm(self, line):
+        array = self.get_array(line)
         array -= self.art.source_array
+        norm = np.linalg.norm(array)
+        return norm
+
+    def get_array(self, line):
+        values, indexes = line.array
+        array = self.array.copy()
+        array[indexes] = array[indexes] + values
         return array
 
     def update_state(self, line_to_add):
@@ -53,7 +66,6 @@ class Greedy():
         return improved
 
     def add_next_line(self, line_to_add):
-        values, indexes = line_to_add.array
-        self.array[indexes] += values
-        action = (line_to_add, self.differences[line_to_add])
-        self.history.append(action)
+        self.array = self.get_array(line_to_add)
+        self.past_lines = self.past_lines.union(set([line_to_add]))
+        self.history += [self.differences[line_to_add]]

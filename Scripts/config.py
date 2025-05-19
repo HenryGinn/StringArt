@@ -106,15 +106,15 @@ class Config():
         self.set_pins()
 
     def extract_config_other(self):
-        self.array_size = self.config["Array Size"]
-        self.background_color = np.array(self.config["Background Color"], dtype="uint8")
-        self.pin_count = self.config["Pin Count"]
+        self.array_size = self.config["ArraySize"]
+        self.background_color = np.array(self.config["BackgroundColor"], dtype="uint8")
+        self.pin_count = self.config["PinCount"]
         self.art.colors = [tuple(color) for color in self.config["Colors"]]
 
     def extract_image_config(self):
-        self.x_position = self.config["Image Properties"]["x"]
-        self.y_position = self.config["Image Properties"]["y"]
-        self.image_size = self.config["Image Properties"]["Size"]
+        self.x_position = self.config["ImageProperties"]["x"]
+        self.y_position = self.config["ImageProperties"]["y"]
+        self.image_size = self.config["ImageProperties"]["Size"]
 
     def extract_physical_parameters(self):
         self.art.physical_diameter = self.config["PhysicalDiameter"]
@@ -146,6 +146,7 @@ class Config():
         self.set_pins()
 
     def set_initial_color_config(self):
+        print("Lol")
         self.background_color = tuple([255, 255, 255])
         self.art.colors = [tuple([0, 0, 0])]
 
@@ -222,9 +223,10 @@ class Config():
         else:
             return np.linspace(0, radius, radius + 1)
 
-    def get_color_array(self, color):
-        color_array = np.array(mcol.to_rgb(color)) * 255
-        color_array = np.ones(self.array_shape)*color_array
+    def get_color_array(self, color_array):
+        if isinstance(color_array, str):
+            color_array = np.array(mcol.to_rgb(color_array)) * 255
+        color_array = np.ones(self.array_shape) * color_array
         return color_array
 
     def update_array_size(self):
@@ -322,14 +324,21 @@ class Config():
         self.config = {}
         self.set_config_other()
         self.set_config_image_properties()
+        self.set_config_physical_properties()
 
     def set_config_other(self):
-        self.config["Array Size"] = self.array_size
-        self.config["Background Color"] = np.array(self.background_color, dtype="uint8")
-        self.config["Pin Count"] = self.pin_count
+        self.config["ArraySize"] = self.array_size
+        self.config["PinCount"] = self.pin_count
 
     def set_config_image_properties(self):
         properties_dict = {"x": self.x_position,
                            "y": self.y_position,
                            "Size": self.image_size}
-        self.config["Image Properties"] = properties_dict
+        self.config["ImageProperties"] = properties_dict
+
+    def set_config_physical_properties(self):
+        self.config["BackgroundColor"] = np.array(self.background_color, dtype="uint8")
+        self.config["PhysicalDiameter"] = self.art.physical_diameter
+        self.config["ThreadWidth"] = self.art.thread_width
+        self.config["Colors"] = self.art.colors
+        
