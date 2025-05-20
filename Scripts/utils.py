@@ -23,20 +23,8 @@ def get_values_indexes(array, null=0):
     non_trivial = np.any(array != null, axis=1)
     indexes = np.nonzero(non_trivial)[0].astype("int32")
     values = array[indexes, :]
-    return values, indexes
-
-def pack(values, indexes):
-    arrays = (indexes.reshape(-1, 1), values)
-    sparse = np.concatenate(arrays, axis=1)
-    return sparse
-
-def unpack(sparse):
-    values = sparse[:, [1]]
-    indexes = sparse[:, 0].reshape(-1).astype("int32")
-    print(values)
-    print(indexes)
-    input()
-    return values, indexes
+    values_indexes = {"Values": values, "Indexes": indexes}
+    return values_indexes
 
 # Uses a formula from:
 # https://en.wikipedia.org/wiki/Alpha_compositing#Description

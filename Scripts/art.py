@@ -10,9 +10,7 @@ from line import Line
 from least_squares import LeastSquares
 from greedy import Greedy
 from utils import (
-    get_image_from_array,
-    pack,
-    unpack)
+    get_image_from_array)
 
 
 grayscale_map = np.array([0.299, 0.587, 0.114])
@@ -109,7 +107,8 @@ class Art():
 
     def line_paths_exist(self):
         return (
-            os.path.exists(self.line_data_path) and
+            os.path.exists(self.line_values_path) and
+            os.path.exists(self.line_indexes_path) and
             os.path.exists(self.line_sizes_path))
     
     def ensure_lines_setup(self):
@@ -118,31 +117,27 @@ class Art():
             self.setup_lines()
 
     def set_line_paths(self):
-        self.set_line_data_path()
-        self.set_line_sizes_path()
+        self.set_line_path("Values")
+        self.set_line_path("Indexes")
+        self.set_line_path("Sizes")
 
-    def set_line_data_path(self):
+    def set_line_path(self, name):
         file_name = (
-            "LineData__"
+            f"Line{name}__"
             f"Name_{self.name}__"
             f"Size_{self.config.array_size}__"
             f"PinCount_{self.config.pin_count}.npy")
-        self.line_data_path = os.path.join(self.folder_path, file_name)
-
-    def set_line_sizes_path(self):
-        file_name = (
-            "LineSizes__"
-            f"Name_{self.name}__"
-            f"Size_{self.config.array_size}__"
-            f"PinCount_{self.config.pin_count}.npy")
-        self.line_sizes_path = os.path.join(self.folder_path, file_name)
+        path = os.path.join(self.folder_path, file_name)
+        setattr(self, f"line_{name.lower()}_path", path)
 
     def set_lines_from_file(self):
         print("Loading line data")
-        line_data = np.load(self.line_data_path, allow_pickle=False)
+        line_values = np.load(self.line_values_path, allow_pickle=False)
+        line_indexes = np.load(self.line_indexes_path, allow_pickle=False)
         sizes = np.load(self.line_sizes_path, allow_pickle=False)
         for line, (start, end) in zip(self.lines, sizes):
-            line.array = unpack(line_data[start:end])
+            line.array = {"Values": line_values[start:end],
+                          "Indexes": line_indexes[start:end]}
 
     def set_lines_from_new(self):
         print("Generating line data")
@@ -158,16 +153,22 @@ class Art():
             line.set_array()
 
     def save_lines(self):
-        self.save_lines_data()
+        self.save_lines_values()
+        self.save_lines_indexes()
         self.save_lines_sizes()
 
-    def save_lines_data(self):
-        arrays = [pack(*line.array) for line in self.lines]
+    def save_lines_values(self):
+        arrays = [line.array["Values"] for line in self.lines]
         line_arrays = np.concatenate(arrays, axis=0)
-        np.save(self.line_data_path, line_arrays, allow_pickle=False)
+        np.save(self.line_values_path, line_arrays, allow_pickle=False)
+
+    def save_lines_indexes(self):
+        arrays = [line.array["Indexes"] for line in self.lines]
+        line_arrays = np.concatenate(arrays, axis=0)
+        np.save(self.line_indexes_path, line_arrays, allow_pickle=False)
 
     def save_lines_sizes(self):
-        sizes = [0] + [line.array[1].size for line in self.lines]
+        sizes = [0] + [line.array["Indexes"].size for line in self.lines]
         sizes = np.cumsum(sizes)
         sizes = np.stack((sizes[:-1], sizes[1:]), axis=1)
         np.save(self.line_sizes_path, sizes, allow_pickle=False)

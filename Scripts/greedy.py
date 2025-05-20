@@ -49,14 +49,15 @@ class Greedy():
             for (line, color) in colored_lines}
 
     def get_norm(self, line, color):
-        array = self.get_array(line, color)
+        array = self.get_array(line.array, color)
         array -= self.art.source_array
         norm = np.linalg.norm(array)
         return norm
 
-    def get_array(self, line, color):
-        values, indexes = line.array
+    def get_array(self, sparse, color):
         array = self.array.copy()
+        indexes = sparse["Indexes"]
+        values = sparse["Values"]
         array[indexes] = add(color, values, array[indexes, :])
         return array
 
@@ -68,6 +69,6 @@ class Greedy():
         return improved
 
     def add_next_line(self, line, color):
-        self.array = self.get_array(line, color)
+        self.array = self.get_array(line.array, color)
         self.past_lines = self.past_lines.union(set([(line, color)]))
         self.history += [self.differences[(line, color)]]
