@@ -15,9 +15,9 @@ class Greedy():
 
     def execute(self):
         improved = self.initialise_execution()
-        while improved:
+        while improved or self.counter <= 1:
             self.iterate()
-            if self.counter % 100 == 0:
+            if self.counter % 1 == 0:
                 self.art.save_array(self.array, f"Iteration_{self.counter:04}")
                 improved = False
             self.counter += 1
@@ -50,8 +50,11 @@ class Greedy():
 
     def get_norm(self, line, color):
         array = self.get_array(line.array, color)
-        array -= self.art.source_array
-        norm = np.linalg.norm(array)
+        self.art.save_array(array, f"{line.name}_{color}_Line")
+        array = self.art.source_array - array
+        array[:, 3] = 1
+        self.art.save_array(array, f"{line.name}_{color}_Difference")
+        norm = np.linalg.norm(array[:, :3])
         return norm
 
     def get_array(self, sparse, color):
