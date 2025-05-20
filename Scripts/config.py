@@ -107,7 +107,7 @@ class Config():
 
     def extract_config_other(self):
         self.array_size = self.config["ArraySize"]
-        self.background_color = np.array(self.config["BackgroundColor"], dtype="uint8")
+        self.background_color = np.array(self.config["BackgroundColor"])
         self.pin_count = self.config["PinCount"]
         self.art.colors = [tuple(color) for color in self.config["Colors"]]
 
@@ -146,8 +146,7 @@ class Config():
         self.set_pins()
 
     def set_initial_color_config(self):
-        print("Lol")
-        self.background_color = tuple([255, 255, 255])
+        self.background_color = tuple([1, 1, 1, 1])
         self.art.colors = [tuple([0, 0, 0])]
 
     def set_initial_physical_parameters_config(self):
@@ -167,38 +166,44 @@ class Config():
     def set_source_array(self):
         self.art.source_array = self.art.blank_array.copy()
         figure_array = self.get_figure_array()
-        non_transparent = self.get_non_transparant(figure_array)
+        non_transparent_map = self.get_non_transparant_map(figure_array)
         self.art.source_array = np.where(
-            non_transparent, figure_array[:, :, :3], self.art.source_array)
+            non_transparent_map, figure_array[:, :, :], self.art.source_array)
+        self.art.source_array[:, :, 3] = 1 # Source image has no transparancy
         self.art.source_array = self.art.serialise(self.art.source_array)
     
     def get_figure_array(self):
-        figure = np.array(self.figure.resize((self.image_size, self.image_size)))
+        figure = np.array(self.figure.resize((self.image_size, self.image_size))) / 255
         figure_array = np.zeros((self.array_size, self.array_size, 4))
-        start_y = min(self.y_position, self.array_size)
-        end_y = min(self.y_position + self.image_size, self.array_size)
-        start_x = min(self.x_position, self.array_size)
-        end_x = min(self.x_position + self.image_size, self.array_size)
+        start_y, end_y, start_x, end_x = self.get_figure_array_bounds()
         figure_array[
             start_y:end_y, start_x:end_x] = figure[:end_y - start_y, :end_x - start_x]
         return figure_array
 
-    def get_non_transparant(self, figure_array):
-        non_transparent = (figure_array[:, :, 3] > 0)[:, :, np.newaxis]
-        non_transparant = np.tile(non_transparent, (1, 1, 3))
-        return non_transparent
+    def get_figure_array_bounds(self):
+        start_y = min(self.y_position, self.array_size)
+        end_y = min(self.y_position + self.image_size, self.array_size)
+        start_x = min(self.x_position, self.array_size)
+        end_x = min(self.x_position + self.image_size, self.array_size)
+        return start_y, end_y, start_x, end_x
+
+    def get_non_transparant_map(self, figure_array):
+        non_transparent_map = (figure_array[:, :, 3] > 0)[:, :, np.newaxis]
+        non_transparant_map = np.tile(non_transparent_map, (1, 1, 4))
+        non_transparant_map[:, :, 3] = False
+        return non_transparent_map
 
     def set_blank_array(self):
         circle_array = self.get_circle_array()
         background_array = self.get_color_array(self.background_color)
-        surroundings_array = self.get_color_array("#021b34")
+        surroundings_array = self.get_color_array("#021b34ff")
         self.art.blank_array = np.where(
             circle_array, background_array, surroundings_array)
 
     def get_circle_array(self):
         circle_array = self.get_circle_array_two_dimensions()
         circle_array = np.expand_dims(circle_array, -1)
-        circle_array = np.tile(circle_array, (1, 1, 3))
+        circle_array = np.tile(circle_array, (1, 1, 4))
         self.art.circle_indexes = np.where(circle_array[:, :, 0])
         self.art.serial_length = self.art.circle_indexes[0].size
         return circle_array
@@ -225,12 +230,12 @@ class Config():
 
     def get_color_array(self, color_array):
         if isinstance(color_array, str):
-            color_array = np.array(mcol.to_rgb(color_array)) * 255
+            color_array = np.array(mcol.to_rgba(color_array))
         color_array = np.ones(self.array_shape) * color_array
         return color_array
 
     def update_array_size(self):
-        self.array_shape = (self.array_size, self.array_size, 3)
+        self.array_shape = (self.array_size, self.array_size, 4)
         self.set_blank_array()
 
     def save_source(self):
@@ -337,7 +342,7 @@ class Config():
         self.config["ImageProperties"] = properties_dict
 
     def set_config_physical_properties(self):
-        self.config["BackgroundColor"] = np.array(self.background_color, dtype="uint8")
+        self.config["BackgroundColor"] = np.array(self.background_color)
         self.config["PhysicalDiameter"] = self.art.physical_diameter
         self.config["ThreadWidth"] = self.art.thread_width
         self.config["Colors"] = self.art.colors

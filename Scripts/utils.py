@@ -22,7 +22,7 @@ def print_help(obj):
 def get_values_indexes(array, null=0):
     non_trivial = np.any(array != null, axis=1)
     indexes = np.nonzero(non_trivial)[0].astype("int32")
-    values = array[indexes, :].astype("uint8")
+    values = array[indexes, :]
     return values, indexes
 
 def pack(values, indexes):
@@ -31,10 +31,24 @@ def pack(values, indexes):
     return sparse
 
 def unpack(sparse):
-    values = sparse[:, [1, 2, 3]]
-    indexes = sparse[:, 0].reshape(-1)
+    values = sparse[:, [1]]
+    indexes = sparse[:, 0].reshape(-1).astype("int32")
+    print(values)
+    print(indexes)
+    input()
     return values, indexes
 
+# Uses a formula from:
+# https://en.wikipedia.org/wiki/Alpha_compositing#Description
+# Simplified as the overall image is always opague so alpha_o = 1 always.
+
+def add(color_a, alpha_a, array_b):
+    color_b = array_b[:, :3]
+    alpha_b = array_b[:, [3]]
+    alpha_over = np.ones(alpha_a.shape)
+    color_over = (color_a*alpha_a + color_b*alpha_b*(1 - alpha_a))
+    array_over = np.concat((color_over, alpha_over), axis=1)
+    return array_over
 
 
 

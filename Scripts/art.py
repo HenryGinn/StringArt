@@ -88,21 +88,18 @@ class Art():
 
     def initialise_lines(self):
         self.lines = [
-            Line(self, pin_1_index, pin_2_index, color)
+            Line(self, pin_1_index, pin_2_index)
             for pin_1_index in range(self.config.pin_count)
             for pin_2_index in range(self.config.pin_count)
-            for color in self.colors
             if pin_1_index < pin_2_index]
 
     def set_line_lookup(self):
         self.line_lookup = {
-            (pin_index, color): [
+            pin_index: [
                 line for line in self.lines
                 if (line.start_index == pin_index or
-                    line.end_index == pin_index) and
-                    line.color == color]
-            for pin_index in range(self.config.pin_count)
-            for color in self.colors}
+                    line.end_index == pin_index)]
+            for pin_index in range(self.config.pin_count)}
 
     def set_line_arrays(self, force=False):
         if force or not self.line_paths_exist():
@@ -199,12 +196,12 @@ class Art():
         return array
 
     def get_unsparse(self, values, indexes, null=0):
-        array = np.ones((self.serial_length, 3)) * null
+        array = np.ones((self.serial_length, 1)) * null
         array[indexes, :] = values
         return array
         
     def save_array(self, array, name):
-        array = self.ensure_unserialised(array)
+        array = self.ensure_unserialised(array) * 255
         image = get_image_from_array(array)
         new_size = int(np.ceil(1000 / image.size[0]) * image.size[0])
         image = image.resize((new_size, new_size), resample=Image.BOX)
